@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 var sequelize = require('../utils/db-connection').sequelize;
 
-const StockOut = sequelize.define({
+const StockOut = sequelize.define('StockOut', {
     id: {
         type: DataTypes.STRING,
         primaryKey: true
@@ -22,6 +22,6 @@ const StockOut = sequelize.define({
     // sequelize
     timestamps: false,
     tableName: 'stock_out'
- });
+});
 
- module.exports = StockOut
+module.exports = StockOut

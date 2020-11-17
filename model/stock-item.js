@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 var sequelize = require('../utils/db-connection').sequelize;
+var Status = require('../utils/util').STOCK_ITEM_STATUS;
 
-const StockItem = sequelize.define({
+const StockItem = sequelize.define('StockItem', {
     id: {
         type: DataTypes.STRING,
         primaryKey: true
@@ -13,10 +14,12 @@ const StockItem = sequelize.define({
         type: DataTypes.STRING
     },
     stock_out_id: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        allowNull: true
     },
     status: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        default: Status.FREE.valueOf()
     }
 }, {
     // sequelize
