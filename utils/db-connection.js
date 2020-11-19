@@ -17,7 +17,13 @@ let settings = (function sequelize() {
 
 var sequelize = new Sequelize(settings.DB, settings.UN, settings.PW, {
     host: settings.HOST,
-    dialect: settings.DIALECT
+    dialect: settings.DIALECT,
+    pool: {
+        max: 5,
+        min: 1,
+        idle: 10000,
+        evict: 10000,
+    }
 });
 
 var db = {};
