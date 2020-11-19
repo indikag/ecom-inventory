@@ -16,7 +16,8 @@ const StockOut = sequelize.define('StockOut', {
         type: DataTypes.DATE
     },
     cart_id: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+        defaultValue: new Date()
     }
 }, {
     // sequelize
