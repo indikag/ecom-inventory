@@ -1,7 +1,6 @@
 const StockItemDal = require('../dal/stock-item-dal');
 const StockInDal = require('../dal/stock-in-dal');
 const StockOutDal = require('../dal/stock-out-dal');
-const StockItem = require('../model/stock-item');
 const response = require('../utils/res');
 const uniqid = require('uniqid');
 const Status = require('../utils/util').STOCK_ITEM_STATUS;
@@ -44,6 +43,8 @@ exports.addStock = (req, res, next) => {
         }).catch(reason => {
             response.error(res, reason.toString());
         });
+    }).catch(reason => {
+        response.error(res, reason.toString());
     });
 }
 
@@ -77,6 +78,8 @@ exports.reserveItems = (req, res, next) => {
             response.error(res, reason.toString());
         });
 
+    }).catch(reason => {
+        response.error(res, reason.toString());
     });
 }
 
@@ -87,7 +90,6 @@ exports.reserveItems = (req, res, next) => {
  * @param {http next} next  
  */
 exports.buyReservedItems = (req, res, next) => {
-    //TODO implement the logic
     let reservedList = req.body.ids;
     let productId = req.body.product_id;
     let cartId = req.body.cart_id;
@@ -109,24 +111,14 @@ exports.buyReservedItems = (req, res, next) => {
             StockOutDal.addStockOut(productId, reservedList.length, cartId).then(item => {
                 response.success(res, item);
             }).catch(reason => {
-                response.error(res, reason);
+                response.error(res, reason.toString());
             })
         }).catch(reason => {
-            response.error(res, reason);
+            response.error(res, reason.toString());
         });
 
-    });
-
-    //response.success(res, reservedList);
-}
-
-//SMAPLE METHOD TO TEST THE LOGIC
-exports.getStockItemsByIDs = (req, res, next) => {
-    const productIds = req.body.ids;
-    console.log(productIds)
-    StockItemDal.findAllByItemIds(productIds).then(itemList => {
-        response.success(res, itemList);
     }).catch(reason => {
         response.error(res, reason.toString());
     });
+
 }
