@@ -9,6 +9,7 @@ exports.success = (res, data, message) => {
         data: data,
         message: message === undefined ? 'Success' : message
     });
+    return;
 }
 
 /**
@@ -22,6 +23,7 @@ exports.badrequest = (res, data, message) => {
         data: data,
         message: message === undefined ? 'Bad request' : message
     });
+    return;
 }
 
 /**
@@ -34,4 +36,5 @@ exports.error = (res, message) => {
     res.status(500).send({
         message: message === undefined ? 'Error' : message
     });
+    return;
 }

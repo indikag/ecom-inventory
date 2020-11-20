@@ -4,6 +4,7 @@ const StockOutDal = require('../dal/stock-out-dal');
 const response = require('../utils/res');
 const uniqid = require('uniqid');
 const Status = require('../utils/util').STOCK_ITEM_STATUS;
+var sequelize = require('../utils/db-connection').sequelize;
 
 /**
  * Get stock item count by product id and status = FREE.
@@ -30,22 +31,28 @@ exports.addStock = (req, res, next) => {
     let productId = req.body.id;
     let productCount = req.body.count;
 
-    //add entry to stock-in table
-    StockInDal.addStockIn(productId, productCount).then(stockin => {
-        //add items to stock-items
-        let items = [];
-        for (let index = 0; index < productCount; index++) {
-            items.push({ id: uniqid(), product_id: productId, stock_in_id: stockin.id, status: Status.FREE });
-        }
+    try {
+        sequelize.transaction(async (t) => {
+            //add entry to stock-in table
+            StockInDal.addStockIn(productId, productCount).then(stockin => {
+                //add items to stock-items
+                let items = [];
+                for (let index = 0; index < productCount; index++) {
+                    items.push({ id: uniqid(), product_id: productId, stock_in_id: stockin.id, status: Status.FREE });
+                }
 
-        StockItemDal.addItemBulk(items).then(data => {
-            response.success(res);
-        }).catch(reason => {
-            response.error(res, reason.toString());
+                StockItemDal.addItemBulk(items).then(data => {
+                    response.success(res);
+                }).catch(reason => {
+                    response.error(res, reason.toString());
+                });
+            }).catch(reason => {
+                response.error(res, reason.toString());
+            });
         });
-    }).catch(reason => {
-        response.error(res, reason.toString());
-    });
+    } catch (error) {
+        response.error(res, error.toString());
+    }
 }
 
 /**
@@ -59,28 +66,34 @@ exports.reserveItems = (req, res, next) => {
     let productId = req.body.id;
     let idList = [];
 
-    StockItemDal.getItemsByProductIdStatusAndQuantity(productId, Status.FREE, itemCount).then(itemList => {
-        if (itemList.length === 0) {
-            response.error(res, 'Out of stock');
-            return;
-        }
+    try {
+        sequelize.transaction(async (t) => {
+            StockItemDal.getItemsByProductIdStatusAndQuantity(productId, Status.FREE, itemCount).then(itemList => {
+                if (itemList.length === 0) {
+                    response.error(res, 'Out of stock');
+                    return;
+                }
 
-        if (itemList.length < itemCount) {
-            response.error(res, 'Requested item count not available in the stock');
-            return;
-        }
+                if (itemList.length < itemCount) {
+                    response.error(res, 'Requested item count not available in the stock');
+                    return;
+                }
 
-        const idList = itemList.map(item => item.id);
+                const idList = itemList.map(item => item.id);
 
-        StockItemDal.updateItemListStatus(idList, Status.RESERVED).then(data => {
-            response.success(res, idList);
-        }).catch(reason => {
-            response.error(res, reason.toString());
+                StockItemDal.updateItemListStatus(idList, Status.RESERVED).then(data => {
+                    response.success(res, idList);
+                }).catch(reason => {
+                    response.error(res, reason.toString());
+                });
+
+            }).catch(reason => {
+                response.error(res, reason.toString());
+            });
         });
-
-    }).catch(reason => {
-        response.error(res, reason.toString());
-    });
+    } catch (error) {
+        response.error(res, error.toString());
+    }
 }
 
 /**
@@ -94,31 +107,37 @@ exports.buyReservedItems = (req, res, next) => {
     let productId = req.body.product_id;
     let cartId = req.body.cart_id;
 
-    // check ids are correct
-    StockItemDal.findAllByItemIds(reservedList).then(itemList => {
-        if (itemList.length !== reservedList.length) {
-            response.badrequest(res)
-        }
+    try {
+        sequelize.transaction(async (t) => {
+            // check ids are correct
+            StockItemDal.findAllByItemIds(reservedList).then(itemList => {
+                if (itemList.length !== reservedList.length) {
+                    response.badrequest(res)
+                }
 
-        // check status are correct
-        const filterByStatus = itemList.filter(item => item.status === Status.RESERVED);
-        if (filterByStatus.length !== reservedList.length) {
-            response.error(res)
-        }
+                // check status are correct
+                const filterByStatus = itemList.filter(item => item.status === Status.RESERVED);
+                if (filterByStatus.length !== reservedList.length) {
+                    response.error(res)
+                }
 
-        StockItemDal.updateItemListStatus(reservedList, Status.PURCHASED).then(list => {
-            //completed the item status update
-            StockOutDal.addStockOut(productId, reservedList.length, cartId).then(item => {
-                response.success(res, item);
+                StockItemDal.updateItemListStatus(reservedList, Status.PURCHASED).then(list => {
+                    //completed the item status update
+                    StockOutDal.addStockOut(productId, reservedList.length, cartId).then(item => {
+                        response.success(res, item);
+                    }).catch(reason => {
+                        response.error(res, reason.toString());
+                    })
+                }).catch(reason => {
+                    response.error(res, reason.toString());
+                });
+
             }).catch(reason => {
                 response.error(res, reason.toString());
-            })
-        }).catch(reason => {
-            response.error(res, reason.toString());
+            });
         });
-
-    }).catch(reason => {
-        response.error(res, reason.toString());
-    });
+    } catch (error) {
+        response.error(res, error.toString());
+    }
 
 }
