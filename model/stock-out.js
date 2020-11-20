@@ -9,7 +9,7 @@ const StockOut = sequelize.define('StockOut', {
     product_id: {
         type: DataTypes.STRING
     },
-    amount: {
+    quantity: {
         type: DataTypes.NUMBER
     },
     date: {
