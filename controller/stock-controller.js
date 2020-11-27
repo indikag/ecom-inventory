@@ -7,6 +7,21 @@ const Status = require('../utils/util').STOCK_ITEM_STATUS;
 var sequelize = require('../utils/db-connection').sequelize;
 
 /**
+ * Get inventory sold and available item count.
+ * @param {http request} req 
+ * @param {http response} res 
+ * @param {next} next 
+ */
+exports.getAllStocks = (req, res, next) => {
+    StockItemDal.getAllStocks().then(items => {
+        response.success(res, items);
+    }).catch(reason => {
+        console.log(reason);
+        response.error(res, reason.error);
+    });
+}
+
+/**
  * Get stock item count by product id and status = FREE.
  * @param {http request} req
  * @param {http response} res 

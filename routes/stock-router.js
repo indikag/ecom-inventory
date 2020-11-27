@@ -2,6 +2,9 @@ var express = require('express');
 var router = express.Router();
 var stockController = require('../controller/stock-controller');
 
+
+router.get('/', stockController.getAllStocks);
+
 /**
  * Get free stock count of a product by id.
  */

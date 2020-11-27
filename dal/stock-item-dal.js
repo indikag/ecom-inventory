@@ -1,5 +1,16 @@
+const { Sequelize } = require('sequelize');
 var StockItem = require('../model/stock-item');
+const db = require('../utils/db-connection');
 var Status = require('../utils/util').STOCK_ITEM_STATUS;
+
+
+/**
+ * Get all stock 
+ */
+async function getAllStocks() {
+    var rawQuery = "select product_id, SUM(case when stock_item.status = 'free' then 1 else 0 end) as free, SUM(case when stock_item.status <> 'free' then 1 else 0 end) as purchased from stock_item group by product_id;"
+    return await db.sequelize.query(rawQuery, { type: db.sequelize.QueryTypes.SELECT });
+}
 
 /**
  * Get free item count by product id.
@@ -59,4 +70,4 @@ async function getItemsByProductIdStatusAndQuantity(productId, status, quantity)
     return await StockItem.findAll({ where: { product_id: productId, status: status }, limit: quantity });
 }
 
-module.exports = { getItemCount, updateItemListStatus, findAllByItemIds, addItemBulk, getItemsByProductIdStatusAndQuantity }
+module.exports = { getItemCount, updateItemListStatus, findAllByItemIds, addItemBulk, getItemsByProductIdStatusAndQuantity, getAllStocks }
